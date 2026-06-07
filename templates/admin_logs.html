@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Activity Logs — Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:11px 14px;font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);}
+td{padding:12px 14px;font-size:.875rem;border-bottom:1px solid var(--border);}
+tr:last-child td{border:none;}
+tr:hover td{background:var(--row);}
+.action-tag{display:inline-block;padding:2px 10px;border-radius:6px;font-size:.75rem;font-weight:600;}
+.action-login{background:rgba(108,99,255,.15);color:var(--accent);}
+.action-logout{background:rgba(74,85,104,.2);color:var(--muted);}
+.action-upload{background:rgba(56,161,105,.15);color:#68d391;}
+.action-download{background:rgba(49,130,206,.15);color:#63b3ed;}
+.action-search{background:rgba(237,137,54,.15);color:#f6ad55;}
+.action-view{background:rgba(160,174,192,.1);color:var(--muted);}
+.action-delete{background:rgba(229,62,62,.15);color:#fc8181;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Activity Logs <span style="font-size:1rem;color:var(--dim);font-weight:400;">({{ logs.count }})</span></h1>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Detail</th>
+        <th>IP Address</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="color:var(--faint);">{{ forloop.counter }}</td>
+        <td style="font-weight:500;">{{ log.user.username }}</td>
+        <td>
+          <span class="action-tag action-{{ log.action }}">
+            {{ log.get_action_display }}
+          </span>
+        </td>
+        <td style="color:var(--dim);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          {{ log.detail|default:"—" }}
+        </td>
+        <td style="color:var(--faint);font-size:.8rem;">{{ log.ip_address|default:"—" }}</td>
+        <td style="color:var(--dim);font-size:.8rem;">{{ log.timestamp|date:"M d, Y H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--faint);">No activity recorded</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

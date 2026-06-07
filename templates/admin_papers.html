@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Papers — Admin{% endblock %}
+{% block extra_css %}
+<style>
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;}
+.toolbar input,.toolbar select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 13px;color:var(--text);font-size:.82rem;outline:none;font-family:inherit;transition:border-color .2s;}
+.toolbar input{width:220px;}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--accent);}
+.toolbar button{padding:8px 16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:11px 14px;font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);}
+td{padding:12px 14px;font-size:.84rem;border-bottom:1px solid var(--border);transition:background .15s;vertical-align:middle;}
+tr:last-child td{border:none;}
+tr:hover td{background:var(--row);}
+.score-ok{color:#68d391;font-weight:700;}
+.score-bad{color:#ff6b6b;font-weight:700;}
+.cat-tag{background:var(--soft);color:var(--accent3);font-size:.7rem;padding:2px 9px;border-radius:20px;font-weight:700;}
+.status-tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.status-pending{background:rgba(214,158,46,.1);color:#f6e05e;}
+.status-accepted{background:rgba(56,161,105,.1);color:#68d391;}
+.status-rejected{background:rgba(229,62,62,.1);color:#ff6b6b;}
+.status-revise{background:rgba(237,137,54,.1);color:#f6ad55;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>All Papers</h1>
+    <p class="page-subtitle">{{ papers.count }} paper{{ papers.count|pluralize }} in the system</p>
+  </div>
+</div>
+<div class="toolbar">
+  <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;width:100%;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search papers...">
+    <select name="category">
+      <option value="">All categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat.id }}" {% if cat_id == cat.id|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+    {% if query or cat_id %}<a href="{% url 'admin_papers' %}" class="btn btn-outline btn-sm">Clear</a>{% endif %}
+  </form>
+</div>
+<div class="card" style="padding:0;overflow:hidden;">
+  <table>
+    <thead>
+      <tr><th>#</th><th>Title</th><th>Category</th><th>Uploaded by</th><th>Score</th><th>Status</th><th>Date</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for paper in papers %}
+      <tr>
+        <td style="color:var(--faint);font-size:.78rem;">{{ forloop.counter }}</td>
+        <td style="max-width:200px;">
+          <a href="{% url 'paper_detail' paper.id %}" style="color:var(--text);text-decoration:none;font-weight:600;font-size:.84rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ paper.title }}</a>
+          {% if paper.abstract %}<div style="font-size:.72rem;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ paper.abstract|truncatechars:55 }}</div>{% endif %}
+        </td>
+        <td>{% if paper.category %}<span class="cat-tag">{{ paper.category.name }}</span>{% else %}—{% endif %}</td>
+        <td style="color:var(--muted);font-weight:500;">{{ paper.uploaded_by.username }}</td>
+        <td>
+          {% if paper.report %}
+            <span class="{% if paper.report.score > 50 %}score-bad{% else %}score-ok{% endif %}">{{ paper.report.score }}%</span>
+          {% else %}<span style="color:var(--faint);">—</span>{% endif %}
+        </td>
+        <td><span class="status-tag status-{{ paper.status }}">{{ paper.status|title }}</span></td>
+        <td style="color:var(--dim);font-size:.78rem;">{{ paper.uploaded_at|date:"M d, Y" }}</td>
+        <td><a href="{% url 'admin_delete_paper' paper.id %}" class="btn btn-danger btn-xs">Delete</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--dim);">No papers found</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

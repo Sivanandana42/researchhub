@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Users — Admin{% endblock %}
+{% block extra_css %}
+<style>
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:11px 16px;font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);}
+td{padding:13px 16px;font-size:.84rem;border-bottom:1px solid var(--border);transition:background .15s;}
+tr:last-child td{border:none;}
+tr:hover td{background:var(--row);}
+.role-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.role-user{background:var(--soft);color:var(--accent3);}
+.role-reviewer{background:rgba(56,161,105,.1);color:#68d391;}
+.actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.user-cell{display:flex;align-items:center;gap:10px;}
+.user-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;color:#fff;flex-shrink:0;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+tbody tr{animation:fadeUp .3s ease forwards;opacity:0;}
+tbody tr:nth-child(1){animation-delay:.05s;}tbody tr:nth-child(2){animation-delay:.08s;}tbody tr:nth-child(3){animation-delay:.11s;}tbody tr:nth-child(4){animation-delay:.14s;}tbody tr:nth-child(5){animation-delay:.17s;}tbody tr:nth-child(n+6){animation-delay:.2s;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Users</h1>
+    <p class="page-subtitle">{{ users.count }} registered user{{ users.count|pluralize }}</p>
+  </div>
+</div>
+<div class="card" style="padding:0;overflow:hidden;">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>User</th><th>Role</th><th>Papers</th><th>Alerts</th><th>Joined</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td style="color:var(--faint);font-size:.78rem;">{{ forloop.counter }}</td>
+        <td>
+          <div class="user-cell">
+            <div class="user-av">{{ u.username|first|upper }}</div>
+            <div>
+              <a href="{% url 'admin_user_detail' u.id %}" style="color:var(--text);text-decoration:none;font-weight:600;">{{ u.username }}</a>
+            </div>
+          </div>
+        </td>
+        <td>
+          {% if u.role == 'reviewer' %}
+          <span class="role-tag role-reviewer">Reviewer</span>
+          {% else %}
+          <span class="role-tag role-user">User</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--muted);font-weight:600;">{{ u.paper_count }}</td>
+        <td style="color:{% if u.alert_count > 0 %}#f6e05e{% else %}var(--dim){% endif %};font-weight:600;">{{ u.alert_count }}</td>
+        <td style="color:var(--dim);font-size:.8rem;">{{ u.date_joined|date:"M d, Y" }}</td>
+        <td>
+          <div class="actions">
+            <form method="POST" action="{% url 'admin_make_reviewer' u.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline btn-xs">
+                {% if u.role == 'reviewer' %}&#8595; User{% else %}&#8593; Reviewer{% endif %}
+              </button>
+            </form>
+            <a href="{% url 'admin_delete_user' u.id %}" class="btn btn-danger btn-xs">Delete</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--dim);">No users registered yet</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

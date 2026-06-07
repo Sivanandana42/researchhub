@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — ResearchHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+[data-theme="dark"]{--bg:#080c14;--surface:#0f1520;--surface2:#141d2e;--border:#1e2d45;--text:#f0f4ff;--muted:#8899bb;--dim:#4a5980;--accent:#5b6ef5;--accent2:#4a5dd4;--accent3:#7c8ff7;--soft:rgba(91,110,245,0.12);--input:#080c14;--glow:rgba(91,110,245,0.2);--err:#ff6b6b;--err-bg:rgba(229,62,62,0.08);--ok:#68d391;--ok-bg:rgba(56,161,105,0.08);}
+[data-theme="light"]{--bg:#f5f7ff;--surface:#ffffff;--surface2:#f0f4ff;--border:#dde3f5;--text:#0f1a35;--muted:#4a5580;--dim:#8892b0;--accent:#4a5dd4;--accent2:#3a4dc4;--accent3:#6b7ef5;--soft:rgba(74,93,212,0.1);--input:#f5f7ff;--glow:rgba(74,93,212,0.15);--err:#e53e3e;--err-bg:rgba(229,62,62,0.06);--ok:#38a169;--ok-bg:rgba(56,161,105,0.06);}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+.topbar{padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.brand{font-size:1rem;font-weight:700;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand-logo{width:26px;height:26px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.78rem;color:#fff;font-weight:700;}
+.theme-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .2s;}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+.layout{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 62px);}
+@media(max-width:768px){.layout{grid-template-columns:1fr;}}
+.left-panel{background:linear-gradient(135deg,#0a0f1e 0%,#111827 50%,#0d1535 100%);padding:3.5rem;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;}
+[data-theme="light"] .left-panel{background:linear-gradient(135deg,#1a1f3a 0%,#2d3561 100%);}
+.left-panel::before{content:'';position:absolute;top:-20%;right:-10%;width:350px;height:350px;background:radial-gradient(ellipse,rgba(91,110,245,.15) 0%,transparent 70%);pointer-events:none;}
+.step-list{display:flex;flex-direction:column;gap:0;margin-top:2rem;}
+.step-item{display:flex;align-items:flex-start;gap:14px;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.step-item:last-child{border:none;}
+.step-num{width:32px;height:32px;border-radius:9px;background:rgba(91,110,245,.2);border:1px solid rgba(91,110,245,.3);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#7c8ff7;flex-shrink:0;margin-top:1px;}
+.step-title{font-size:.88rem;font-weight:600;color:rgba(255,255,255,.85);margin-bottom:2px;}
+.step-desc{font-size:.78rem;color:rgba(255,255,255,.4);line-height:1.5;}
+.left-panel h2{font-size:1.9rem;font-weight:800;color:#fff;line-height:1.25;letter-spacing:-.8px;}
+.left-panel h2 span{background:linear-gradient(135deg,#7c8ff7,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+@media(max-width:768px){.left-panel{display:none;}}
+.right-panel{display:flex;align-items:center;justify-content:center;padding:2.5rem;overflow-y:auto;}
+.form-box{width:100%;max-width:400px;}
+.form-box h1{font-size:1.5rem;font-weight:800;margin-bottom:.4rem;letter-spacing:-.5px;}
+.form-box .sub{font-size:.85rem;color:var(--muted);margin-bottom:2rem;}
+.form-group{margin-bottom:1.2rem;}
+.form-label{display:block;font-size:.73rem;font-weight:700;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.6px;}
+.input-wrap{position:relative;}
+.input-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:.88rem;outline:none;transition:all .2s;font-family:inherit;}
+.input-wrap input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--soft);}
+.input-wrap input.field-ok{border-color:rgba(56,161,105,.5);}
+.input-wrap input.field-err{border-color:rgba(229,62,62,.5);}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);cursor:pointer;font-size:1rem;padding:4px;transition:color .2s;}
+.eye-btn:hover{color:var(--muted);}
+.strength-track{height:3px;background:var(--border);border-radius:2px;margin-top:7px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;}
+.strength-text{font-size:.72rem;margin-top:5px;font-weight:600;}
+.match-msg{font-size:.73rem;margin-top:5px;font-weight:600;min-height:14px;}
+.submit-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:.1px;box-shadow:0 4px 15px var(--glow);margin-top:.5rem;}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--glow);}
+.submit-btn:active{transform:scale(.98);}
+.divider{display:flex;align-items:center;gap:12px;margin:1.5rem 0;color:var(--dim);font-size:.78rem;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.form-footer{text-align:center;font-size:.82rem;color:var(--dim);}
+.form-footer a{color:var(--accent);text-decoration:none;font-weight:600;}
+.form-footer a:hover{text-decoration:underline;}
+.alert{padding:10px 14px;border-radius:8px;margin-bottom:1rem;font-size:.82rem;display:flex;align-items:center;gap:8px;border:1px solid;}
+.alert-error{background:var(--err-bg);border-color:rgba(229,62,62,.3);color:var(--err);}
+.alert-success{background:var(--ok-bg);border-color:rgba(56,161,105,.3);color:var(--ok);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.form-box{animation:fadeUp .4s ease;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="{% url 'landing' %}" class="brand"><div class="brand-logo">R</div> ResearchHub</a>
+  <button class="theme-btn" onclick="toggleTheme()"><span id="theme-icon">&#9788;</span></button>
+</div>
+<div class="layout">
+  <div class="left-panel">
+    <h2>Join the<br><span>Research Community</span></h2>
+    <div class="step-list">
+      <div class="step-item"><div class="step-num">1</div><div><div class="step-title">Create your account</div><div class="step-desc">Choose a username and secure password</div></div></div>
+      <div class="step-item"><div class="step-num">2</div><div><div class="step-title">Upload your papers</div><div class="step-desc">Add research papers in PDF, DOC or TXT format</div></div></div>
+      <div class="step-item"><div class="step-num">3</div><div><div class="step-title">Get plagiarism results</div><div class="step-desc">AI analysis runs instantly with a similarity score</div></div></div>
+      <div class="step-item"><div class="step-num">4</div><div><div class="step-title">Receive feedback</div><div class="step-desc">Reviewers provide decisions and detailed comments</div></div></div>
+    </div>
+  </div>
+  <div class="right-panel">
+    <div class="form-box">
+      <h1>Create account</h1>
+      <p class="sub">Free forever — no credit card required</p>
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {% if message.tags == 'error' %}&#9888;{% else %}&#10003;{% endif %}{{ message }}
+        </div>
+        {% endfor %}
+      {% endif %}
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <div class="input-wrap">
+            <input type="text" name="username" id="uname" placeholder="Choose a username" required autocomplete="off" oninput="checkUsername(this.value)">
+          </div>
+          <div class="match-msg" id="uname-msg"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="pw1" placeholder="Create a strong password" required oninput="checkStrength(this.value)">
+            <button type="button" class="eye-btn" onclick="toggleEye('pw1')">&#128065;</button>
+          </div>
+          <div class="strength-track"><div class="strength-fill" id="sfill"></div></div>
+          <div class="strength-text" id="slabel"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm password</label>
+          <div class="input-wrap">
+            <input type="password" name="confirm_password" id="pw2" placeholder="Repeat your password" required oninput="checkMatch()">
+            <button type="button" class="eye-btn" onclick="toggleEye('pw2')">&#128065;</button>
+          </div>
+          <div class="match-msg" id="mmsg"></div>
+        </div>
+        <button type="submit" class="submit-btn">Create my account &rarr;</button>
+      </form>
+      <div class="divider">already a member?</div>
+      <div class="form-footer"><a href="{% url 'login' %}">Sign in to your account</a></div>
+    </div>
+  </div>
+</div>
+<script>
+function toggleEye(id){const f=document.getElementById(id);f.type=f.type==='password'?'text':'password';}
+function checkUsername(v){
+  const msg=document.getElementById('uname-msg');
+  const f=document.getElementById('uname');
+  if(v.length<3){msg.style.color='var(--err)';msg.textContent='Username too short';f.className='field-err';}
+  else{msg.style.color='var(--ok)';msg.textContent='Username looks good';f.className='field-ok';}
+}
+function checkStrength(v){
+  const fill=document.getElementById('sfill');
+  const lbl=document.getElementById('slabel');
+  if(!v){fill.style.width='0';lbl.textContent='';return;}
+  let s=0;
+  if(v.length>=6)s++;if(v.length>=10)s++;
+  if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const lvl=[{w:'20%',c:'#ff6b6b',t:'Very weak'},{w:'40%',c:'#ff6b6b',t:'Weak'},{w:'60%',c:'#f6e05e',t:'Fair'},{w:'80%',c:'#68d391',t:'Good'},{w:'100%',c:'#38a169',t:'Strong'}];
+  const l=lvl[Math.min(s,4)];
+  fill.style.width=l.w;fill.style.background=l.c;
+  lbl.style.color=l.c;lbl.textContent=l.t;
+}
+function checkMatch(){
+  const p1=document.getElementById('pw1').value;
+  const p2=document.getElementById('pw2').value;
+  const msg=document.getElementById('mmsg');
+  const f2=document.getElementById('pw2');
+  if(!p2){msg.textContent='';return;}
+  if(p1===p2){msg.style.color='var(--ok)';msg.textContent='&#10003; Passwords match';f2.className='field-ok';}
+  else{msg.style.color='var(--err)';msg.textContent='&#10007; Does not match';f2.className='field-err';}
+}
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);const i=document.getElementById('theme-icon');if(i)i.textContent=t==='dark'?'☀':'☾';localStorage.setItem('rh-theme',t);}
+function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
+(function(){applyTheme(localStorage.getItem('rh-theme')||'dark');})();
+</script>
+</body>
+</html>

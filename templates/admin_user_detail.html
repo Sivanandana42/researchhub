@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}{{ u.username }} — Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.user-hero{display:flex;align-items:center;gap:1.25rem;margin-bottom:2rem;}
+.user-avatar-lg{width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;flex-shrink:0;}
+.user-hero h2{font-size:1.4rem;font-weight:700;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:2rem;}
+@media(max-width:700px){.three-col{grid-template-columns:1fr;}}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
+.stat-card .num{font-size:1.75rem;font-weight:700;color:var(--accent);}
+.stat-card .lbl{font-size:.8rem;color:var(--dim);margin-top:4px;}
+.section-title{font-size:.78rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:10px 12px;font-size:.75rem;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:11px 12px;font-size:.875rem;border-bottom:1px solid var(--border);}
+tr:last-child td{border:none;}
+tr:hover td{background:var(--row);}
+.score-ok{color:#68d391;font-weight:600;}
+.score-bad{color:#fc8181;font-weight:600;}
+.action-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:600;}
+.action-login{background:rgba(108,99,255,.15);color:var(--accent);}
+.action-upload{background:rgba(56,161,105,.15);color:#68d391;}
+.action-search{background:rgba(237,137,54,.15);color:#f6ad55;}
+.action-view{background:rgba(160,174,192,.1);color:var(--muted);}
+.action-logout{background:rgba(74,85,104,.2);color:var(--muted);}
+.action-download{background:rgba(49,130,206,.15);color:#63b3ed;}
+.action-delete{background:rgba(229,62,62,.15);color:#fc8181;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem;">
+  <a href="{% url 'admin_users' %}" style="color:var(--dim);text-decoration:none;font-size:.875rem;">&#8592; Back to users</a>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="user-hero">
+    <div class="user-avatar-lg">{{ u.username|first|upper }}</div>
+    <div>
+      <h2>{{ u.username }}</h2>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+        <span style="font-size:.8rem;color:var(--dim);">Joined {{ u.date_joined|date:"M d, Y" }}</span>
+        <span class="badge badge-accent">{{ role|title }}</span>
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <form method="POST" action="{% url 'admin_make_reviewer' u.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline btn-sm">
+          {% if role == 'reviewer' %}&#8595; Set as User{% else %}&#8593; Make Reviewer{% endif %}
+        </button>
+      </form>
+      <a href="{% url 'admin_delete_user' u.id %}" class="btn btn-danger btn-sm">Delete User</a>
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="stat-card">
+      <div class="num">{{ papers.count }}</div>
+      <div class="lbl">Papers uploaded</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" style="color:#fc8181;">{{ alerts.count }}</div>
+      <div class="lbl">Total alerts</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" style="color:#68d391;">{{ logs.count }}</div>
+      <div class="lbl">Activities logged</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAPERS TABLE -->
+<div style="margin-bottom:1.5rem;">
+  <div class="section-title">Uploaded Papers</div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead>
+        <tr><th>Title</th><th>Category</th><th>Score</th><th>Status</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for paper in papers %}
+        <tr>
+          <td style="font-weight:500;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            <a href="{% url 'paper_detail' paper.id %}" style="color:var(--text);text-decoration:none;">{{ paper.title }}</a>
+          </td>
+          <td style="color:var(--dim);">{{ paper.category.name|default:"—" }}</td>
+          <td>
+            {% if paper.report %}
+              <span class="{% if paper.report.score > 50 %}score-bad{% else %}score-ok{% endif %}">
+                {{ paper.report.score }}%
+              </span>
+            {% else %}—{% endif %}
+          </td>
+          <td><span class="badge badge-{% if paper.status == 'accepted' %}green{% elif paper.status == 'rejected' %}red{% else %}accent{% endif %}">{{ paper.status|title }}</span></td>
+          <td style="color:var(--dim);">{{ paper.uploaded_at|date:"M d, Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--faint);">No papers uploaded</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ACTIVITY LOG -->
+<div>
+  <div class="section-title">Recent Activity</div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead>
+        <tr><th>Action</th><th>Detail</th><th>Time</th></tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td><span class="action-tag action-{{ log.action }}">{{ log.get_action_display }}</span></td>
+          <td style="color:var(--dim);">{{ log.detail|default:"—" }}</td>
+          <td style="color:var(--faint);font-size:.8rem;">{{ log.timestamp|date:"M d, Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--faint);">No activity</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

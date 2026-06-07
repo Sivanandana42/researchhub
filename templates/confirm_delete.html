@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Confirm Delete — ResearchHub{% endblock %}
+{% block extra_css %}
+<style>
+.confirm-wrap{max-width:480px;margin:4rem auto;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.confirm-wrap{animation:fadeUp .4s ease;}
+.item-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-weight:600;margin-bottom:1.75rem;color:var(--text);font-size:.9rem;}
+.confirm-actions{display:flex;gap:1rem;}
+.warning-icon{font-size:2.5rem;margin-bottom:1rem;display:block;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="confirm-wrap">
+  <div class="card">
+    <span class="warning-icon">&#9888;&#65039;</span>
+    <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:.6rem;letter-spacing:-.3px;">Confirm deletion</h2>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.5rem;line-height:1.6;">This action is permanent and cannot be undone. The following item will be deleted:</p>
+    <div class="item-box">{{ item }}</div>
+    <div class="confirm-actions">
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete permanently</button>
+      </form>
+      <a href="{% url cancel_url %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

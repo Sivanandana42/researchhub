@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Alerts — Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:11px 14px;font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);}
+td{padding:13px 14px;font-size:.875rem;border-bottom:1px solid var(--border);}
+tr:last-child td{border:none;}
+tr:hover td{background:var(--row);}
+.status-read{background:rgba(56,161,105,.15);color:#68d391;font-size:.75rem;padding:2px 8px;border-radius:4px;}
+.status-unread{background:rgba(229,62,62,.15);color:#fc8181;font-size:.75rem;padding:2px 8px;border-radius:4px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>All Alerts <span style="font-size:1rem;color:var(--dim);font-weight:400;">({{ alerts.count }})</span></h1>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Message</th>
+        <th>User</th>
+        <th>Paper</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alert in alerts %}
+      <tr>
+        <td style="color:var(--faint);">{{ forloop.counter }}</td>
+        <td style="max-width:280px;color:var(--muted);">{{ alert.message }}</td>
+        <td style="font-weight:500;">{{ alert.user.username }}</td>
+        <td style="color:var(--dim);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ alert.paper.title }}</td>
+        <td>
+          {% if alert.is_read %}
+          <span class="status-read">Read</span>
+          {% else %}
+          <span class="status-unread">Unread</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--dim);">{{ alert.created_at|date:"M d, Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--faint);">No alerts generated yet</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

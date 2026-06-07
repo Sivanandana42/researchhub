@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Admin Overview — ResearchHub{% endblock %}
+{% block extra_css %}
+<style>
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.25rem;margin-bottom:2rem;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;transition:all .25s;position:relative;overflow:hidden;}
+.stat-box::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));opacity:0;transition:opacity .2s;}
+.stat-box:hover{border-color:var(--accent);transform:translateY(-2px);}
+.stat-box:hover::after{opacity:1;}
+.stat-box .ico{font-size:1.4rem;margin-bottom:.6rem;opacity:.8;}
+.stat-box .num{font-size:2.2rem;font-weight:800;letter-spacing:-1px;}
+.stat-box .lbl{font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:5px;}
+.stat-box .link{font-size:.75rem;color:var(--accent);text-decoration:none;margin-top:10px;display:inline-flex;align-items:center;gap:4px;font-weight:600;}
+.stat-box .link:hover{text-decoration:underline;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;}
+@media(max-width:1000px){.three-col{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.three-col{grid-template-columns:1fr;}}
+.panel-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.panel-header{padding:1.1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:10px 14px;font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);}
+td{padding:11px 14px;font-size:.84rem;border-bottom:1px solid var(--border);transition:background .15s;}
+tr:last-child td{border:none;}
+tr:hover td{background:var(--row);}
+.score-ok{color:#68d391;font-weight:700;}
+.score-bad{color:#ff6b6b;font-weight:700;}
+.role-tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.role-user{background:var(--soft);color:var(--accent3);}
+.role-reviewer{background:rgba(56,161,105,.1);color:#68d391;}
+.action-tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.action-login{background:var(--soft);color:var(--accent3);}
+.action-upload{background:rgba(56,161,105,.1);color:#68d391;}
+.action-search{background:rgba(237,137,54,.1);color:#f6ad55;}
+.action-view{background:rgba(160,174,192,.07);color:var(--muted);}
+.action-logout{background:rgba(74,85,104,.12);color:var(--muted);}
+.action-download{background:rgba(49,130,206,.1);color:#63b3ed;}
+.action-delete{background:rgba(229,62,62,.1);color:#ff6b6b;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.stats-grid .stat-box{animation:fadeUp .4s ease forwards;opacity:0;}
+.stats-grid .stat-box:nth-child(1){animation-delay:.05s;}
+.stats-grid .stat-box:nth-child(2){animation-delay:.1s;}
+.stats-grid .stat-box:nth-child(3){animation-delay:.15s;}
+.stats-grid .stat-box:nth-child(4){animation-delay:.2s;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Admin Overview</h1>
+    <p class="page-subtitle">Full system control — ResearchHub</p>
+  </div>
+</div>
+<div class="stats-grid">
+  <div class="stat-box">
+    <div class="ico">&#128100;</div>
+    <div class="num" style="color:var(--accent);">{{ total_users }}</div>
+    <div class="lbl">Registered users</div>
+    <a href="{% url 'admin_users' %}" class="link">View all &rarr;</a>
+  </div>
+  <div class="stat-box">
+    <div class="ico">&#128196;</div>
+    <div class="num" style="color:#68d391;">{{ total_papers }}</div>
+    <div class="lbl">Total papers</div>
+    <a href="{% url 'admin_papers' %}" class="link">View all &rarr;</a>
+  </div>
+  <div class="stat-box">
+    <div class="ico">&#9888;</div>
+    <div class="num" style="color:#ff6b6b;">{{ high_plag }}</div>
+    <div class="lbl">High plagiarism</div>
+    <a href="{% url 'admin_papers' %}" class="link">Review &rarr;</a>
+  </div>
+  <div class="stat-box">
+    <div class="ico">&#128276;</div>
+    <div class="num" style="color:#f6e05e;">{{ total_alerts }}</div>
+    <div class="lbl">Unread alerts</div>
+    <a href="{% url 'admin_alerts' %}" class="link">View all &rarr;</a>
+  </div>
+</div>
+<div class="three-col">
+  <div class="panel-card">
+    <div class="panel-header">
+      <span class="panel-title">Recent papers</span>
+      <a href="{% url 'admin_papers' %}" class="btn btn-outline btn-xs">All</a>
+    </div>
+    <table>
+      <tbody>
+        {% for paper in recent_papers %}
+        <tr>
+          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            <a href="{% url 'paper_detail' paper.id %}" style="color:var(--text);text-decoration:none;font-weight:600;font-size:.82rem;">{{ paper.title }}</a>
+            <div style="font-size:.72rem;color:var(--dim);margin-top:2px;">{{ paper.uploaded_by.username }} &middot; {{ paper.uploaded_at|date:"M d" }}</div>
+          </td>
+          <td style="text-align:right;">
+            {% if paper.report %}
+              <span class="{% if paper.report.score > 50 %}score-bad{% else %}score-ok{% endif %}" style="font-size:.8rem;">{{ paper.report.score }}%</span>
+            {% else %}<span style="color:var(--faint);">—</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td style="color:var(--faint);text-align:center;padding:2rem;font-size:.82rem;">No papers yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-card">
+    <div class="panel-header">
+      <span class="panel-title">Recent users</span>
+      <a href="{% url 'admin_users' %}" class="btn btn-outline btn-xs">All</a>
+    </div>
+    <table>
+      <tbody>
+        {% for u in recent_users %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0;">{{ u.username|first|upper }}</div>
+              <div>
+                <a href="{% url 'admin_user_detail' u.id %}" style="color:var(--text);text-decoration:none;font-weight:600;font-size:.82rem;">{{ u.username }}</a>
+                <div style="font-size:.72rem;color:var(--dim);">{{ u.date_joined|date:"M d, Y" }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="text-align:right;">
+            {% if u.profile.role == 'reviewer' %}
+            <span class="role-tag role-reviewer">Reviewer</span>
+            {% else %}
+            <span class="role-tag role-user">User</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td style="color:var(--faint);text-align:center;padding:2rem;font-size:.82rem;">No users yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-card">
+    <div class="panel-header">
+      <span class="panel-title">Recent activity</span>
+      <a href="{% url 'admin_logs' %}" class="btn btn-outline btn-xs">All</a>
+    </div>
+    <table>
+      <tbody>
+        {% for log in recent_logs %}
+        <tr>
+          <td>
+            <div style="font-weight:600;font-size:.82rem;">{{ log.user.username }}</div>
+            <div style="font-size:.72rem;color:var(--dim);">{{ log.timestamp|date:"M d, H:i" }}</div>
+          </td>
+          <td style="text-align:right;"><span class="action-tag action-{{ log.action }}">{{ log.get_action_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td style="color:var(--faint);text-align:center;padding:2rem;font-size:.82rem;">No activity</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

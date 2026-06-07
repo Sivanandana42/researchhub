@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — ResearchHub{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;padding:1.25rem;
+  transition:border-color .2s,transform .2s;
+  position:relative;overflow:hidden;
+}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));opacity:0;transition:opacity .2s;}
+.stat-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.stat-card:hover::after{opacity:1;}
+.stat-card .num{font-size:1.9rem;font-weight:800;letter-spacing:-1px;}
+.stat-card .lbl{font-size:.75rem;color:var(--dim);margin-top:5px;text-transform:uppercase;letter-spacing:.5px;}
+.toolbar{
+  display:flex;gap:10px;flex-wrap:wrap;
+  margin-bottom:1.75rem;align-items:center;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;padding:1rem 1.25rem;
+}
+.toolbar input,.toolbar select{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:9px 14px;color:var(--text);
+  font-size:.82rem;outline:none;font-family:inherit;
+  transition:border-color .2s;
+}
+.toolbar input{width:240px;}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--accent);}
+.toolbar button{
+  padding:9px 18px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:8px;
+  font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.alert-banner{
+  background:rgba(229,62,62,.06);border:1px solid rgba(229,62,62,.2);
+  border-radius:13px;padding:1.25rem 1.5rem;margin-bottom:1.75rem;
+}
+.alert-banner h3{font-size:.82rem;font-weight:700;color:#ff6b6b;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.4px;}
+.alert-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid rgba(229,62,62,.1);
+  font-size:.82rem;color:var(--muted);
+}
+.alert-row:last-child{border:none;}
+.dismiss-btn{background:none;border:none;color:var(--dim);font-size:.75rem;cursor:pointer;text-decoration:underline;font-family:inherit;transition:color .2s;}
+.dismiss-btn:hover{color:#ff6b6b;}
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.25rem;
+}
+.section-label{font-size:.78rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;}
+.results-count{font-size:.78rem;color:var(--dim);}
+.papers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;}
+.paper-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;padding:1.5rem;
+  transition:all .25s;cursor:pointer;text-decoration:none;color:inherit;
+  display:block;position:relative;overflow:hidden;
+}
+.paper-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent3));
+  transform:scaleX(0);transition:transform .25s;transform-origin:left;
+}
+.paper-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.paper-card:hover::before{transform:scaleX(1);}
+.paper-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.85rem;}
+.paper-cat{
+  background:var(--soft);color:var(--accent3);
+  font-size:.7rem;font-weight:700;padding:3px 10px;
+  border-radius:20px;text-transform:uppercase;letter-spacing:.4px;
+}
+.mine-tag{
+  background:rgba(56,161,105,.1);color:#68d391;
+  font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px;
+}
+.paper-card h3{font-size:.92rem;font-weight:700;margin-bottom:.4rem;line-height:1.4;color:var(--text);}
+.paper-abstract{font-size:.78rem;color:var(--dim);margin-bottom:1rem;line-height:1.55;}
+.paper-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:6px;
+  padding-top:.85rem;border-top:1px solid var(--border);
+}
+.score{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:6px;
+}
+.score-ok{background:rgba(56,161,105,.1);color:#68d391;}
+.score-bad{background:rgba(229,62,62,.1);color:#ff6b6b;}
+.paper-user-info{display:flex;align-items:center;gap:6px;}
+.mini-avatar{
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.paper-user{font-size:.74rem;color:var(--muted);}
+.paper-date{font-size:.72rem;color:var(--faint);}
+.empty{text-align:center;padding:5rem 2rem;color:var(--dim);}
+.empty .ico{font-size:3rem;margin-bottom:1rem;opacity:.5;}
+.empty p{font-size:.9rem;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Research Papers</h1>
+    <p class="page-subtitle">Welcome back, {{ user.username }}</p>
+  </div>
+  <a href="{% url 'upload' %}" class="btn btn-primary">+ Upload Paper</a>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="num" style="color:var(--accent);">{{ total_papers }}</div>
+    <div class="lbl">My uploads</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" style="color:#ff6b6b;">{{ high_plag }}</div>
+    <div class="lbl">High plagiarism</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" style="color:#f6e05e;">{{ alert_count }}</div>
+    <div class="lbl">Unread alerts</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" style="color:#68d391;">{{ papers.count }}</div>
+    <div class="lbl">Total in system</div>
+  </div>
+</div>
+
+{% if alerts %}
+<div class="alert-banner">
+  <h3>&#9888; Unread Alerts ({{ alerts.count }})</h3>
+  {% for alert in alerts %}
+  <div class="alert-row">
+    <span>{{ alert.message }}</span>
+    <a href="{% url 'mark_read' alert.id %}" class="dismiss-btn">Dismiss</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="toolbar">
+  <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;width:100%;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search by title...">
+    <input type="text" name="keyword" value="{{ keyword }}" placeholder="Search by keyword...">
+    <select name="category">
+      <option value="">All categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat.id }}" {% if cat_id == cat.id|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Search</button>
+    {% if query or cat_id or keyword %}
+    <a href="{% url 'dashboard' %}" class="btn btn-outline btn-sm">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="section-header">
+  <span class="section-label">All research papers</span>
+  <span class="results-count">{{ papers.count }} paper{{ papers.count|pluralize }}</span>
+</div>
+
+{% if papers %}
+<div class="papers-grid">
+  {% for paper in papers %}
+  <a href="{% url 'paper_detail' paper.id %}" class="paper-card">
+    <div class="paper-tags">
+      {% if paper.category %}<span class="paper-cat">{{ paper.category.name }}</span>{% endif %}
+      {% if paper.uploaded_by == user %}<span class="mine-tag">Mine</span>{% endif %}
+    </div>
+    <h3>{{ paper.title }}</h3>
+    {% if paper.abstract %}<p class="paper-abstract">{{ paper.abstract|truncatechars:95 }}</p>{% endif %}
+    <div class="paper-foot">
+      <div style="display:flex;align-items:center;gap:8px;">
+        {% if paper.report %}
+          {% if paper.report.score > 50 %}
+          <span class="score score-bad">&#9888; {{ paper.report.score }}%</span>
+          {% else %}
+          <span class="score score-ok">&#10003; {{ paper.report.score }}%</span>
+          {% endif %}
+        {% endif %}
+      </div>
+     <div class="paper-user-info">
+  <div class="mini-avatar">{{ paper.uploaded_by.username|first|upper }}</div>
+  <span class="paper-user">{{ paper.uploaded_by.username }}</span>
+  <span class="paper-date">&middot; {{ paper.uploaded_at|date:"M d, Y" }}</span>
+</div>
+{% if paper.uploaded_by == user %}
+<a href="{% url 'delete_paper' paper.id %}" onclick="return confirm('Delete this paper?')" style="color:#ff6b6b;font-size:.72rem;text-decoration:none;font-weight:600;">&#128465;</a>
+{% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <div class="ico">&#128269;</div>
+  <p>No papers found.
+  {% if not query and not cat_id and not keyword %}
+  <a href="{% url 'upload' %}" style="color:var(--accent);">Upload the first one</a>
+  {% endif %}
+  </p>
+</div>
+{% endif %}
+{% endblock %}

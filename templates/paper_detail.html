@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% block title %}{{ paper.title }} — ResearchHub{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-grid{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start;}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
+.paper-header{margin-bottom:1.5rem;}
+.paper-header h1{font-size:1.4rem;font-weight:700;line-height:1.4;margin-bottom:.75rem;letter-spacing:-.3px;}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:1rem;}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:600;}
+.tag-cat{background:var(--soft);color:var(--accent3);}
+.tag-pending{background:rgba(214,158,46,.12);color:#f6e05e;}
+.tag-accepted{background:rgba(56,161,105,.12);color:#68d391;}
+.tag-rejected{background:rgba(229,62,62,.12);color:#ff6b6b;}
+.tag-revise{background:rgba(237,137,54,.12);color:#f6ad55;}
+.section{margin-bottom:1.75rem;}
+.section-title{font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:.85rem;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.abstract-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;font-size:.88rem;color:var(--muted);line-height:1.75;}
+.keyword-list{display:flex;flex-wrap:wrap;gap:6px;}
+.kw{background:var(--soft);color:var(--accent3);padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:600;border:1px solid rgba(91,110,245,.15);}
+.score-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;position:relative;overflow:hidden;}
+.score-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));}
+.score-big{font-size:2.75rem;font-weight:800;margin-bottom:4px;letter-spacing:-2px;}
+.score-ok{color:#68d391;}
+.score-bad{color:#ff6b6b;}
+.score-bar-wrap{background:var(--border);border-radius:4px;height:6px;margin:12px 0;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:4px;transition:width .8s ease;}
+.score-msg-bad{font-size:.78rem;color:#ff6b6b;font-weight:600;margin-bottom:10px;}
+.score-msg-ok{font-size:.78rem;color:#68d391;font-weight:600;margin-bottom:10px;}
+.summary-text{font-size:.8rem;color:var(--dim);line-height:1.65;}
+.review-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;transition:border-color .2s;}
+.review-card:hover{border-color:var(--border2);}
+.review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;}
+.reviewer-info{display:flex;align-items:center;gap:10px;}
+.reviewer-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0;}
+.reviewer-name{font-size:.85rem;font-weight:700;color:var(--text);}
+.review-date{font-size:.72rem;color:var(--dim);margin-top:1px;}
+.review-comment{font-size:.84rem;color:var(--muted);line-height:1.65;padding-top:.75rem;border-top:1px solid var(--border);}
+.review-form{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;}
+.review-form h3{font-size:.95rem;font-weight:700;margin-bottom:1.25rem;color:var(--text);}
+.form-group{margin-bottom:1.25rem;}
+.form-group label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.6px;}
+.form-group textarea,.form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:.875rem;outline:none;font-family:inherit;transition:all .2s;}
+.form-group textarea{min-height:110px;resize:vertical;line-height:1.6;}
+.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--soft);}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.25rem;}
+.info-card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;border-bottom:1px solid var(--border);font-size:.84rem;transition:background .15s;}
+.info-row:last-child{border:none;}
+.info-row:hover{background:var(--row);}
+.info-label{color:var(--dim);}
+.info-value{font-weight:600;color:var(--text);}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;font-weight:500;margin-bottom:1.5rem;transition:color .2s;}
+.back-link:hover{color:var(--text);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.detail-grid{animation:fadeUp .4s ease;}
+
+.suggestions-card{
+  background:linear-gradient(135deg,#fffbeb,#fef3c7);
+  border:1px solid #f59e0b;
+  border-radius:14px;
+  padding:1.5rem;
+  margin-bottom:1.25rem;
+  position:relative;
+  overflow:hidden;
+}
+.suggestions-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);
+}
+.suggestions-title{
+  font-size:.72rem;font-weight:700;color:#92400e;
+  text-transform:uppercase;letter-spacing:.7px;
+  margin-bottom:1rem;display:flex;align-items:center;gap:8px;
+}
+.bulb{
+  width:28px;height:28px;border-radius:8px;
+  background:rgba(245,158,11,0.2);border:1px solid #f59e0b;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+}
+.suggestion-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(245,158,11,0.2);
+  font-size:.83rem;color:#78350f;line-height:1.55;
+}
+.suggestion-item:last-child{border:none;}
+.suggestion-num{
+  width:22px;height:22px;border-radius:6px;
+  background:#f59e0b;color:white;
+  font-size:.72rem;font-weight:800;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.suggestions-footer{
+  margin-top:10px;padding:8px 12px;
+  background:rgba(245,158,11,0.1);border-radius:8px;
+  font-size:.78rem;color:#92400e;font-style:italic;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<a href="{% url 'dashboard' %}" class="back-link">&#8592; Back to dashboard</a>
+
+<div class="detail-grid">
+
+  <!-- LEFT COLUMN -->
+  <div>
+
+    <div class="paper-header">
+      <h1>{{ paper.title }}</h1>
+      <div class="meta-row">
+        {% if paper.category %}
+        <span class="tag tag-cat">{{ paper.category.name }}</span>
+        {% endif %}
+        <span class="tag tag-{{ paper.status }}">
+          {% if paper.status == 'pending' %}&#9679; Pending Review
+          {% elif paper.status == 'accepted' %}&#10003; Accepted
+          {% elif paper.status == 'rejected' %}&#10007; Rejected
+          {% else %}&#9998; Needs Revision
+          {% endif %}
+        </span>
+        <span style="font-size:.8rem;color:var(--dim);">
+          by <strong style="color:var(--muted);">{{ paper.uploaded_by.username }}</strong>
+          &middot; {{ paper.uploaded_at|date:"M d, Y" }}
+        </span>
+      </div>
+    </div>
+
+    {% if paper.abstract %}
+    <div class="section">
+      <div class="section-title">Abstract</div>
+      <div class="abstract-box">{{ paper.abstract }}</div>
+    </div>
+    {% endif %}
+
+    {% if keywords %}
+    <div class="section">
+      <div class="section-title">Keywords</div>
+      <div class="keyword-list">
+        {% for kw in keywords %}
+        <span class="kw">{{ kw }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+      <div class="section-title">Reviews ({{ reviews.count }})</div>
+      {% if reviews %}
+    {% for review in reviews %}
+<div class="review-card">
+  <div class="review-header">
+    <div class="reviewer-info">
+      <div class="reviewer-avatar">{{ review.reviewer.username|first|upper }}</div>
+      <div>
+        <div class="reviewer-name">{{ review.reviewer.username }}</div>
+        <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
+      </div>
+    </div>
+    {% if review.reviewer == user %}
+    <a href="{% url 'delete_review' review.id %}"
+       onclick="return confirm('Delete your review?')"
+       style="font-size:.72rem;color:#ff6b6b;text-decoration:none;font-weight:600;
+              padding:4px 10px;border:1px solid rgba(229,62,62,.3);border-radius:6px;
+              transition:all .2s;"
+       onmouseover="this.style.background='rgba(229,62,62,.1)'"
+       onmouseout="this.style.background='transparent'">
+      &#128465; Delete
+    </a>
+    {% else %}
+    <span style="font-size:.72rem;color:var(--dim);">Feedback</span>
+    {% endif %}
+  </div>
+  <p class="review-comment">{{ review.comment }}</p>
+</div>
+{% endfor %}
+      {% else %}
+        <p style="color:var(--faint);font-size:.84rem;padding:.75rem 0;">No reviews submitted yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- SUBMIT REVIEW — any logged-in user except the uploader -->
+{% if paper.uploaded_by != user %}
+<div class="section">
+  <div class="section-title">Add Your Review</div>
+  <div class="review-form">
+    <h3>Share your feedback</h3>
+    <form method="POST" action="{% url 'submit_review' paper.id %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Your feedback</label>
+        <textarea name="comment"
+          placeholder="Share your thoughts, suggestions or feedback about this paper..."
+          required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit Feedback</button>
+    </form>
+  </div>
+</div>
+{% else %}
+<div class="section">
+  <p style="color:var(--dim);font-size:.84rem;">You cannot review your own paper.</p>
+</div>
+{% endif %}
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    {% if suggestions %}
+<div class="suggestions-card">
+  <div class="suggestions-title">
+    <div class="bulb">💡</div>
+    AI Suggestions to Reduce Plagiarism
+  </div>
+
+  {% for suggestion in suggestions %}
+  <div class="suggestion-item">
+    <div class="suggestion-num">{{ forloop.counter }}</div>
+    <span>{{ suggestion }}</span>
+  </div>
+  {% endfor %}
+
+  <div class="suggestions-footer">
+    Applying these suggestions can significantly reduce your similarity score on re-submission.
+  </div>
+</div>
+{% endif %}
+
+    {% if report %}
+    <div class="score-card">
+      <div class="section-title">Plagiarism Report</div>
+
+      <div class="score-big" id="score-num">{{ report.score }}%</div>
+      <div style="font-size:.78rem;color:var(--dim);margin-bottom:4px;">Similarity score</div>
+
+      <div class="score-bar-wrap">
+       <div class="score-bar-fill" id="score-bar" data-score="{{ report.score }}"></div>
+      </div>
+
+      <p class="score-msg-bad" id="score-msg-bad" style="display:none;">&#9888; High similarity detected — review recommended</p>
+      <p class="score-msg-ok" id="score-msg-ok" style="display:none;">&#10003; Content appears largely original</p>
+
+      {% if report.summary %}
+      <p class="summary-text">{{ report.summary }}</p>
+      {% endif %}
+
+      {% if report.keywords %}
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Extracted Keywords</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">{{ report.keywords }}</div>
+      </div>
+      {% endif %}
+
+      <div style="margin-top:12px;font-size:.72rem;color:var(--faint);">Checked {{ report.checked_at|date:"M d, Y H:i" }}</div>
+    </div>
+    {% endif %}
+
+    <div class="info-card">
+      <div class="info-card-header">Paper Details</div>
+      <div class="info-row">
+        <span class="info-label">Uploaded by</span>
+        <span class="info-value">{{ paper.uploaded_by.username }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Upload date</span>
+        <span class="info-value">{{ paper.uploaded_at|date:"M d, Y" }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Category</span>
+        <span class="info-value">{{ paper.category.name|default:"—" }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Status</span>
+        <span class="info-value">{{ paper.status|title }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Reviews</span>
+        <span class="info-value">{{ reviews.count }}</span>
+      </div>
+    </div>
+
+    {% if paper.file %}
+    <a href="{{ paper.file.url }}"
+       class="btn btn-primary"
+       style="width:100%;justify-content:center;margin-bottom:8px;"
+       download>
+      &#8595; Download Paper
+    </a>
+    {% endif %}
+
+    {% if report %}
+<a href="{% url 'export_pdf' paper.id %}"
+   class="btn btn-outline"
+   style="width:100%;justify-content:center;margin-bottom:8px;">
+  &#128196; Export Report as PDF
+</a>
+{% endif %}
+
+    {% if paper.uploaded_by == user or user.profile.role == 'admin' %}
+    <a href="{% url 'delete_paper' paper.id %}"
+       class="btn btn-danger"
+       style="width:100%;justify-content:center;"
+       onclick="return confirm('Delete this paper permanently? This cannot be undone.')">
+      &#128465; Delete Paper
+    </a>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  var bar  = document.getElementById('score-bar');
+  var num  = document.getElementById('score-num');
+  var msgB = document.getElementById('score-msg-bad');
+  var msgO = document.getElementById('score-msg-ok');
+
+  if(bar){
+    var score = parseFloat(bar.style.width);
+    if(score > 50){
+      bar.style.background  = '#ff6b6b';
+      if(num)  num.style.color  = '#ff6b6b';
+      if(msgB) msgB.style.display = 'block';
+    } else {
+      bar.style.background  = '#68d391';
+      if(num)  num.style.color  = '#68d391';
+      if(msgO) msgO.style.display = 'block';
+    }
+  }
+})();
+</script>
+{% endblock %}

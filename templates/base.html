@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}ResearchHub{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
+
+[data-theme="dark"]{
+  --bg:#080c14;
+  --surface:#0f1520;
+  --surface2:#141d2e;
+  --surface3:#1a2540;
+  --border:#1e2d45;
+  --border2:#243452;
+  --text:#f0f4ff;
+  --muted:#8899bb;
+  --dim:#4a5980;
+  --faint:#2a3550;
+  --accent:#5b6ef5;
+  --accent2:#4a5dd4;
+  --accent3:#7c8ff7;
+  --soft:rgba(91,110,245,0.12);
+  --soft2:rgba(91,110,245,0.06);
+  --nav:#0a0f1e;
+  --input:#080c14;
+  --err-bg:rgba(229,62,62,0.08);
+  --ok-bg:rgba(56,161,105,0.08);
+  --warn-bg:rgba(214,158,46,0.08);
+  --row:rgba(255,255,255,0.02);
+  --glow:rgba(91,110,245,0.15);
+}
+
+[data-theme="light"]{
+  --bg:#f5f7ff;
+  --surface:#ffffff;
+  --surface2:#f0f4ff;
+  --surface3:#e8eeff;
+  --border:#dde3f5;
+  --border2:#c8d0f0;
+  --text:#0f1a35;
+  --muted:#4a5580;
+  --dim:#8892b0;
+  --faint:#c5cce8;
+  --accent:#4a5dd4;
+  --accent2:#3a4dc4;
+  --accent3:#6b7ef5;
+  --soft:rgba(74,93,212,0.1);
+  --soft2:rgba(74,93,212,0.05);
+  --nav:#ffffff;
+  --input:#f5f7ff;
+  --err-bg:rgba(229,62,62,0.06);
+  --ok-bg:rgba(56,161,105,0.06);
+  --warn-bg:rgba(214,158,46,0.06);
+  --row:rgba(0,0,0,0.02);
+  --glow:rgba(74,93,212,0.1);
+}
+
+body{background:var(--bg);color:var(--text);}
+
+/* NAV */
+nav{
+  background:var(--nav);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;
+  height:62px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:200;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+
+.nav-brand{
+  font-size:1.1rem;
+  font-weight:700;
+  color:var(--text);
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  letter-spacing:-.3px;
+}
+
+.nav-logo{
+  width:30px;height:30px;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;color:#fff;font-weight:700;
+  box-shadow:0 0 12px var(--glow);
+}
+
+.nav-links{display:flex;align-items:center;gap:.25rem;}
+
+.nav-links a{
+  color:var(--muted);
+  text-decoration:none;
+  font-size:.82rem;
+  font-weight:500;
+  padding:6px 12px;
+  border-radius:8px;
+  transition:all .2s;
+  letter-spacing:.1px;
+}
+
+.nav-links a:hover{color:var(--text);background:var(--soft2);}
+.nav-links a.active{color:var(--accent);background:var(--soft);}
+
+.nav-right{display:flex;align-items:center;gap:8px;}
+
+.nav-avatar{
+  width:32px;height:32px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.78rem;color:#fff;
+  box-shadow:0 0 8px var(--glow);
+}
+
+.nav-username{font-size:.82rem;color:var(--muted);font-weight:500;}
+
+.theme-btn{
+  width:34px;height:34px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--muted);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;
+  transition:all .2s;
+}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--soft);}
+
+/* BUTTONS */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;
+  border-radius:8px;
+  font-size:.82rem;font-weight:600;
+  text-decoration:none;cursor:pointer;
+  transition:all .2s;border:none;
+  font-family:inherit;letter-spacing:.1px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  box-shadow:0 2px 12px var(--glow);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 18px var(--glow);}
+.btn-outline{
+  background:transparent;color:var(--muted);
+  border:1px solid var(--border);
+}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:var(--soft);}
+.btn-danger{background:linear-gradient(135deg,#e53e3e,#c53030);color:#fff;}
+.btn-danger:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(229,62,62,.3);}
+.btn-sm{padding:5px 12px;font-size:.78rem;}
+.btn-xs{padding:3px 9px;font-size:.74rem;}
+
+/* LAYOUT */
+.container{max-width:1280px;margin:0 auto;padding:2rem 2rem;}
+
+/* ALERTS */
+.alert{
+  padding:10px 14px;
+  border-radius:8px;
+  margin-bottom:.75rem;
+  font-size:.82rem;
+  display:flex;align-items:center;gap:8px;
+  border:1px solid;
+}
+.alert-error{background:var(--err-bg);border-color:rgba(229,62,62,.3);color:#ff6b6b;}
+.alert-success{background:var(--ok-bg);border-color:rgba(56,161,105,.3);color:#68d391;}
+.alert-warning{background:var(--warn-bg);border-color:rgba(214,158,46,.3);color:#f6e05e;}
+
+/* CARDS */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1.5rem;
+}
+
+/* BADGES */
+.badge{
+  display:inline-flex;align-items:center;
+  padding:3px 9px;
+  border-radius:20px;
+  font-size:.72rem;font-weight:600;
+  letter-spacing:.2px;
+}
+.badge-accent{background:var(--soft);color:var(--accent);}
+.badge-green{background:rgba(56,161,105,.12);color:#68d391;}
+.badge-red{background:rgba(229,62,62,.12);color:#ff6b6b;}
+.badge-yellow{background:rgba(214,158,46,.12);color:#f6e05e;}
+.badge-blue{background:rgba(49,130,206,.12);color:#63b3ed;}
+
+/* PAGE HEADER */
+.page-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:2rem;flex-wrap:wrap;gap:1rem;
+}
+.page-header h1{font-size:1.35rem;font-weight:700;letter-spacing:-.3px;}
+.page-subtitle{font-size:.82rem;color:var(--muted);margin-top:4px;}
+
+/* ANIMATIONS */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes fadeIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+.animate-up{animation:fadeUp .4s ease forwards;}
+.animate-in{animation:fadeIn .3s ease forwards;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--dim);}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav>
+  <a href="{% if user.profile.role == 'admin' %}{% url 'admin_panel' %}{% else %}{% url 'dashboard' %}{% endif %}" class="nav-brand">
+    <div class="nav-logo">R</div>
+    ResearchHub
+  </a>
+
+  <div class="nav-links">
+    {% if user.profile.role == 'admin' %}
+      <a href="{% url 'admin_panel' %}">Overview</a>
+      <a href="{% url 'admin_users' %}">Users</a>
+      <a href="{% url 'admin_papers' %}">Papers</a>
+      <a href="{% url 'admin_alerts' %}">Alerts</a>
+      <a href="{% url 'admin_logs' %}">Logs</a>
+      <a href="{% url 'admin_categories' %}">Categories</a>
+    {% else %}
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'upload' %}">Upload</a>
+      <a href="{% url 'my_activity' %}">Activity</a>
+      {% if user.profile.role == 'reviewer' %}
+      <a href="{% url 'reviewer' %}">Reviewer</a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="nav-right">
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+      <span id="theme-icon">&#9788;</span>
+    </button>
+    <div class="nav-avatar">{{ user.username|first|upper }}</div>
+    <span class="nav-username">{{ user.username }}</span>
+    {% if user.profile.role == 'admin' %}
+    <span class="badge badge-accent">Admin</span>
+    {% elif user.profile.role == 'reviewer' %}
+    <span class="badge badge-green">Reviewer</span>
+    {% endif %}
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Logout</a>
+  </div>
+</nav>
+{% endif %}
+
+<div {% if user.is_authenticated %}class="container animate-up"{% endif %}>
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+      {% if message.tags == 'error' %}&#9888;
+      {% elif message.tags == 'success' %}&#10003;
+      {% else %}&#9432;{% endif %}
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}{% endblock %}
+</div>
+
+{% block extra_js %}{% endblock %}
+<script>
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  const i=document.getElementById('theme-icon');
+  if(i)i.textContent=t==='dark'?'☀':'☾';
+  localStorage.setItem('rh-theme',t);
+}
+function toggleTheme(){
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+(function(){applyTheme(localStorage.getItem('rh-theme')||'dark');})();
+</script>
+</body>
+</html>
