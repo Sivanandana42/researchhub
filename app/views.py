@@ -897,32 +897,3 @@ def admin_make_reviewer(request, user_id):
         messages.success(request, f'{user.username} role updated to {profile.role}.')
     return redirect('admin_users')
 
-def create_admin(request):
-    secret = request.GET.get('secret', '')
-    if secret != 'nttf2026setup':
-        from django.http import HttpResponseForbidden
-        return HttpResponseForbidden('Not allowed')
-
-    from django.contrib.auth.models import User
-    from app.models import Profile, Category
-
-    msg = []
-
-    # create admin user
-    if not User.objects.filter(username='admin').exists():
-        u = User.objects.create_user(username='admin', password='Admin@nttf2026')
-        Profile.objects.create(user=u, role='admin')
-        msg.append('Admin user created — username: admin / password: Admin@nttf2026')
-    else:
-        msg.append('Admin already exists')
-
-    # create categories
-    cats = ['Artificial Intelligence','Machine Learning','Data Science',
-            'Cybersecurity','Networking','Robotics','Computer Vision','NLP']
-    for name in cats:
-        if not Category.objects.filter(name=name).exists():
-            Category.objects.create(name=name)
-    msg.append(f'{len(cats)} categories added')
-
-    from django.http import HttpResponse
-    return HttpResponse('<br>'.join(msg) + '<br><br>Setup complete. Delete this URL from urls.py now.')
