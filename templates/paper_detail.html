@@ -23,8 +23,6 @@
 .score-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;position:relative;overflow:hidden;}
 .score-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));}
 .score-big{font-size:2.75rem;font-weight:800;margin-bottom:4px;letter-spacing:-2px;}
-.score-ok{color:#68d391;}
-.score-bad{color:#ff6b6b;}
 .score-bar-wrap{background:var(--border);border-radius:4px;height:6px;margin:12px 0;overflow:hidden;}
 .score-bar-fill{height:100%;border-radius:4px;transition:width .8s ease;}
 .score-msg-bad{font-size:.78rem;color:#ff6b6b;font-weight:600;margin-bottom:10px;}
@@ -42,9 +40,8 @@
 .review-form h3{font-size:.95rem;font-weight:700;margin-bottom:1.25rem;color:var(--text);}
 .form-group{margin-bottom:1.25rem;}
 .form-group label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.6px;}
-.form-group textarea,.form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:.875rem;outline:none;font-family:inherit;transition:all .2s;}
-.form-group textarea{min-height:110px;resize:vertical;line-height:1.6;}
-.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--soft);}
+.form-group textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:.875rem;outline:none;font-family:inherit;transition:all .2s;min-height:110px;resize:vertical;line-height:1.6;}
+.form-group textarea:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--soft);}
 .info-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.25rem;}
 .info-card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;}
 .info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;border-bottom:1px solid var(--border);font-size:.84rem;transition:background .15s;}
@@ -54,18 +51,18 @@
 .info-value{font-weight:600;color:var(--text);}
 .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.82rem;font-weight:500;margin-bottom:1.5rem;transition:color .2s;}
 .back-link:hover{color:var(--text);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-.detail-grid{animation:fadeUp .4s ease;}
+.del-btn{font-size:.72rem;color:#ff6b6b;text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid rgba(229,62,62,.3);border-radius:6px;}
+.del-btn:hover{background:rgba(229,62,62,.1);}
 .suggestions-card{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #f59e0b;border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;position:relative;overflow:hidden;}
-.suggestions-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);}
+.suggestions-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24);}
 .suggestions-title{font-size:.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.7px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
 .bulb{width:28px;height:28px;border-radius:8px;background:rgba(245,158,11,0.2);border:1px solid #f59e0b;display:flex;align-items:center;justify-content:center;font-size:14px;}
 .suggestion-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(245,158,11,0.2);font-size:.83rem;color:#78350f;line-height:1.55;}
 .suggestion-item:last-child{border:none;}
-.suggestion-num{width:22px;height:22px;border-radius:6px;background:#f59e0b;color:white;font-size:.72rem;font-weight:800;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.suggestion-num{width:22px;height:22px;border-radius:6px;background:#f59e0b;color:white;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
 .suggestions-footer{margin-top:10px;padding:8px 12px;background:rgba(245,158,11,0.1);border-radius:8px;font-size:.78rem;color:#92400e;font-style:italic;}
-.del-btn{font-size:.72rem;color:#ff6b6b;text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid rgba(229,62,62,.3);border-radius:6px;transition:all .2s;}
-.del-btn:hover{background:rgba(229,62,62,.1);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.detail-grid{animation:fadeUp .4s ease;}
 </style>
 {% endblock %}
 
@@ -117,7 +114,6 @@
     </div>
     {% endif %}
 
-    <!-- REVIEWS -->
     <div class="section">
       <div class="section-title">Reviews ({{ reviews.count }})</div>
       {% if reviews %}
@@ -131,15 +127,11 @@
                 <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
               </div>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              {% if review.reviewer == user %}
-              <a href="{% url 'delete_review' review.id %}"
-                 onclick="return confirm('Delete your review?')"
-                 class="del-btn">
-                &#128465; Delete
-              </a>
-              {% endif %}
-            </div>
+            {% if review.reviewer == user %}
+            <a href="{% url 'delete_review' review.id %}"
+               onclick="return confirm('Delete your review?')"
+               class="del-btn">&#128465; Delete</a>
+            {% endif %}
           </div>
           <p class="review-comment">{{ review.comment }}</p>
         </div>
@@ -149,7 +141,6 @@
       {% endif %}
     </div>
 
-    <!-- SUBMIT REVIEW -->
     {% if paper.uploaded_by != user %}
     <div class="section">
       <div class="section-title">Add Your Review</div>
@@ -169,7 +160,7 @@
     </div>
     {% else %}
     <div class="section">
-      <p style="color:var(--dim);font-size:.84rem;">You cannot review your own paper.</p>
+      <p style="color:var(--dim);font-size:.84rem;font-style:italic;">You cannot review your own paper.</p>
     </div>
     {% endif %}
 
@@ -247,9 +238,7 @@
     <a href="{{ paper.file.url }}"
        class="btn btn-primary"
        style="width:100%;justify-content:center;margin-bottom:8px;"
-       download>
-      &#8595; Download Paper
-    </a>
+       download>&#8595; Download Paper</a>
     {% endif %}
 
     {% if report %}
@@ -281,7 +270,6 @@
   var num  = document.getElementById('score-num');
   var msgB = document.getElementById('score-msg-bad');
   var msgO = document.getElementById('score-msg-ok');
-
   if(bar){
     var score = parseFloat(bar.dataset.score);
     bar.style.width = score + '%';
