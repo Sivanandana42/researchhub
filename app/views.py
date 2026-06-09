@@ -722,7 +722,7 @@ def submit_review(request, paper_id):
     paper = get_object_or_404(ResearchPaper, id=paper_id)
 
     if paper.uploaded_by == request.user:
-        messages.error(request, 'You cannot review your own paper.')
+        messages.error(request, 'You cannot review this paper.')
         return redirect('paper_detail', paper_id=paper.id)
 
     if get_role(request.user) not in ['reviewer', 'admin']:
