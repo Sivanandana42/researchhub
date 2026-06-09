@@ -56,50 +56,16 @@
 .back-link:hover{color:var(--text);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 .detail-grid{animation:fadeUp .4s ease;}
-
-.suggestions-card{
-  background:linear-gradient(135deg,#fffbeb,#fef3c7);
-  border:1px solid #f59e0b;
-  border-radius:14px;
-  padding:1.5rem;
-  margin-bottom:1.25rem;
-  position:relative;
-  overflow:hidden;
-}
-.suggestions-card::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);
-}
-.suggestions-title{
-  font-size:.72rem;font-weight:700;color:#92400e;
-  text-transform:uppercase;letter-spacing:.7px;
-  margin-bottom:1rem;display:flex;align-items:center;gap:8px;
-}
-.bulb{
-  width:28px;height:28px;border-radius:8px;
-  background:rgba(245,158,11,0.2);border:1px solid #f59e0b;
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;
-}
-.suggestion-item{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:8px 0;
-  border-bottom:1px solid rgba(245,158,11,0.2);
-  font-size:.83rem;color:#78350f;line-height:1.55;
-}
+.suggestions-card{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #f59e0b;border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;position:relative;overflow:hidden;}
+.suggestions-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);}
+.suggestions-title{font-size:.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.7px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.bulb{width:28px;height:28px;border-radius:8px;background:rgba(245,158,11,0.2);border:1px solid #f59e0b;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.suggestion-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(245,158,11,0.2);font-size:.83rem;color:#78350f;line-height:1.55;}
 .suggestion-item:last-child{border:none;}
-.suggestion-num{
-  width:22px;height:22px;border-radius:6px;
-  background:#f59e0b;color:white;
-  font-size:.72rem;font-weight:800;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:1px;
-}
-.suggestions-footer{
-  margin-top:10px;padding:8px 12px;
-  background:rgba(245,158,11,0.1);border-radius:8px;
-  font-size:.78rem;color:#92400e;font-style:italic;
-}
+.suggestion-num{width:22px;height:22px;border-radius:6px;background:#f59e0b;color:white;font-size:.72rem;font-weight:800;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.suggestions-footer{margin-top:10px;padding:8px 12px;background:rgba(245,158,11,0.1);border-radius:8px;font-size:.78rem;color:#92400e;font-style:italic;}
+.del-btn{font-size:.72rem;color:#ff6b6b;text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid rgba(229,62,62,.3);border-radius:6px;transition:all .2s;}
+.del-btn:hover{background:rgba(229,62,62,.1);}
 </style>
 {% endblock %}
 
@@ -118,13 +84,14 @@
         {% if paper.category %}
         <span class="tag tag-cat">{{ paper.category.name }}</span>
         {% endif %}
+        {% if paper.status != 'pending' %}
         <span class="tag tag-{{ paper.status }}">
-          {% if paper.status == 'pending' %}&#9679; Pending Review
-          {% elif paper.status == 'accepted' %}&#10003; Accepted
-          {% elif paper.status == 'rejected' %}&#10007; Rejected
+          {% if paper.status == 'accepted' %}&#10003; Accepted
+          {% elif paper.status == 'rejected' %}&#10007; High Plagiarism
           {% else %}&#9998; Needs Revision
           {% endif %}
         </span>
+        {% endif %}
         <span style="font-size:.8rem;color:var(--dim);">
           by <strong style="color:var(--muted);">{{ paper.uploaded_by.username }}</strong>
           &middot; {{ paper.uploaded_at|date:"M d, Y" }}
@@ -150,152 +117,104 @@
     </div>
     {% endif %}
 
+    <!-- REVIEWS -->
     <div class="section">
       <div class="section-title">Reviews ({{ reviews.count }})</div>
       {% if reviews %}
-    {% for review in reviews %}
-<div class="review-card">
-  <div class="review-header">
-    <div class="reviewer-info">
-      <div class="reviewer-avatar">{{ review.reviewer.username|first|upper }}</div>
-      <div>
-        <div class="reviewer-name">{{ review.reviewer.username }}</div>
-        <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
-      </div>
-    </div>
-   <div class="review-header">
-    <div class="reviewer-info">
-        <div class="reviewer-avatar">
-            {{ review.reviewer.username|first|upper }}
-        </div>
-        <div>
-            <div class="reviewer-name">
-                {{ review.reviewer.username }}
+        {% for review in reviews %}
+        <div class="review-card">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <div class="reviewer-avatar">{{ review.reviewer.username|first|upper }}</div>
+              <div>
+                <div class="reviewer-name">{{ review.reviewer.username }}</div>
+                <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
+              </div>
             </div>
-            <div class="review-date">
-                {{ review.created_at|date:"M d, Y" }}
+            <div style="display:flex;gap:8px;align-items:center;">
+              {% if review.reviewer == user %}
+              <a href="{% url 'delete_review' review.id %}"
+                 onclick="return confirm('Delete your review?')"
+                 class="del-btn">
+                &#128465; Delete
+              </a>
+              {% endif %}
             </div>
+          </div>
+          <p class="review-comment">{{ review.comment }}</p>
         </div>
-    </div>
-
-    <div style="display:flex;gap:8px;align-items:center;">
-
-        <span class="tag tag-{{ review.decision }}">
-            {% if review.decision == 'accepted' %}
-                ✓ Accepted
-            {% elif review.decision == 'rejected' %}
-                ✗ Rejected
-            {% elif review.decision == 'revise' %}
-                ✎ Needs Revision
-            {% else %}
-                Pending
-            {% endif %}
-        </span>
-
-        {% if review.reviewer == user %}
-        <a href="{% url 'delete_review' review.id %}"
-           onclick="return confirm('Delete your review?')"
-           style="font-size:.72rem;color:#ff6b6b;text-decoration:none;font-weight:600;
-                  padding:4px 10px;border:1px solid rgba(229,62,62,.3);
-                  border-radius:6px;">
-            &#128465; Delete
-        </a>
-        {% endif %}
-
-    </div>
-</div>
-  </div>
-  <p class="review-comment">{{ review.comment }}</p>
-</div>
-{% endfor %}
+        {% endfor %}
       {% else %}
         <p style="color:var(--faint);font-size:.84rem;padding:.75rem 0;">No reviews submitted yet.</p>
       {% endif %}
     </div>
 
-    <!-- SUBMIT REVIEW — any logged-in user except the uploader -->
-{% if paper.uploaded_by != user and user.profile.role == 'reviewer' %}
-<div class="section">
-  <div class="section-title">Add Your Review</div>
-  <div class="review-form">
-    <h3>Share your feedback</h3>
-    <form method="POST" action="{% url 'submit_review' paper.id %}">
-      {% csrf_token %}
-      <div class="form-group">
-  <label>Decision</label>
-  <select name="decision" required>
-    <option value="accepted">Accept</option>
-    <option value="rejected">Reject</option>
-    <option value="revise">Needs Revision</option>
-  </select>
-</div>
-      <div class="form-group">
-        <label>Your feedback</label>
-        <textarea name="comment"
-          placeholder="Share your thoughts, suggestions or feedback about this paper..."
-          required></textarea>
+    <!-- SUBMIT REVIEW -->
+    {% if paper.uploaded_by != user %}
+    <div class="section">
+      <div class="section-title">Add Your Review</div>
+      <div class="review-form">
+        <h3>Share your feedback</h3>
+        <form method="POST" action="{% url 'submit_review' paper.id %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label>Your feedback</label>
+            <textarea name="comment"
+              placeholder="Share your thoughts, suggestions or feedback about this paper..."
+              required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Feedback</button>
+        </form>
       </div>
-      <button type="submit" class="btn btn-primary">Submit Feedback</button>
-    </form>
-  </div>
-</div>
-{% if paper.uploaded_by == user %}
-<div class="section">
-  <p style="color:var(--dim);font-size:.84rem;">
-    You cannot review your own paper.
-  </p>
-</div>
-{% endif %}
+    </div>
+    {% else %}
+    <div class="section">
+      <p style="color:var(--dim);font-size:.84rem;">You cannot review your own paper.</p>
+    </div>
+    {% endif %}
 
   </div>
 
   <!-- RIGHT COLUMN -->
   <div>
+
     {% if suggestions %}
-<div class="suggestions-card">
-  <div class="suggestions-title">
-    <div class="bulb">💡</div>
-    AI Suggestions to Reduce Plagiarism
-  </div>
-
-  {% for suggestion in suggestions %}
-  <div class="suggestion-item">
-    <div class="suggestion-num">{{ forloop.counter }}</div>
-    <span>{{ suggestion }}</span>
-  </div>
-  {% endfor %}
-
-  <div class="suggestions-footer">
-    Applying these suggestions can significantly reduce your similarity score on re-submission.
-  </div>
-</div>
-{% endif %}
+    <div class="suggestions-card">
+      <div class="suggestions-title">
+        <div class="bulb">&#128161;</div>
+        AI Suggestions to Reduce Plagiarism
+      </div>
+      {% for suggestion in suggestions %}
+      <div class="suggestion-item">
+        <div class="suggestion-num">{{ forloop.counter }}</div>
+        <span>{{ suggestion }}</span>
+      </div>
+      {% endfor %}
+      <div class="suggestions-footer">
+        Applying these suggestions can significantly reduce your similarity score on re-submission.
+      </div>
+    </div>
+    {% endif %}
 
     {% if report %}
     <div class="score-card">
       <div class="section-title">Plagiarism Report</div>
-
       <div class="score-big" id="score-num">{{ report.score }}%</div>
       <div style="font-size:.78rem;color:var(--dim);margin-bottom:4px;">Similarity score</div>
-
       <div class="score-bar-wrap">
-       <div class="score-bar-fill" id="score-bar" data-score="{{ report.score }}"></div>
+        <div class="score-bar-fill" id="score-bar" data-score="{{ report.score }}"></div>
       </div>
-
       <p class="score-msg-bad" id="score-msg-bad" style="display:none;">&#9888; High similarity detected — review recommended</p>
       <p class="score-msg-ok" id="score-msg-ok" style="display:none;">&#10003; Content appears largely original</p>
-
       {% if report.summary %}
       <p class="summary-text">{{ report.summary }}</p>
       {% endif %}
-
       {% if report.keywords %}
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
         <div style="font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Extracted Keywords</div>
         <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">{{ report.keywords }}</div>
       </div>
       {% endif %}
-
       <div style="margin-top:12px;font-size:.72rem;color:var(--faint);">Checked {{ report.checked_at|date:"M d, Y H:i" }}</div>
     </div>
     {% endif %}
@@ -334,12 +253,12 @@
     {% endif %}
 
     {% if report %}
-<a href="{% url 'export_pdf' paper.id %}"
-   class="btn btn-outline"
-   style="width:100%;justify-content:center;margin-bottom:8px;">
-  &#128196; Export Report as PDF
-</a>
-{% endif %}
+    <a href="{% url 'export_pdf' paper.id %}"
+       class="btn btn-outline"
+       style="width:100%;justify-content:center;margin-bottom:8px;">
+      &#128196; Export Report as PDF
+    </a>
+    {% endif %}
 
     {% if paper.uploaded_by == user or user.profile.role == 'admin' %}
     <a href="{% url 'delete_paper' paper.id %}"
@@ -365,9 +284,7 @@
 
   if(bar){
     var score = parseFloat(bar.dataset.score);
-
-    bar.style.width = score + "%";
-
+    bar.style.width = score + '%';
     if(score > 50){
       bar.style.background = '#ff6b6b';
       if(num) num.style.color = '#ff6b6b';
