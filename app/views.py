@@ -497,7 +497,6 @@ def export_report_pdf(request, paper_id):
 
 # ── upload ────────────────────────────────────
 # ── upload ────────────────────────────────────
-@login_required(login_url='login')
 def extract_text_from_file(file):
     """Extract plain text from uploaded file for plagiarism comparison."""
     import os
@@ -534,7 +533,7 @@ def extract_text_from_file(file):
     file.seek(0)
     return text.strip()
 
-
+@login_required(login_url='login')
 def upload_paper(request):
     if get_role(request.user) == 'admin':
         return redirect('admin_panel')
