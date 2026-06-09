@@ -663,24 +663,30 @@ def submit_review(request, paper_id):
 
     if request.method == 'POST':
         comment = request.POST.get('comment', '').strip()
+        decision = request.POST.get('decision', 'pending')
 
         if comment:
             Review.objects.create(
                 paper=paper,
                 reviewer=request.user,
                 comment=comment,
-                decision='pending',
+                decision=decision,
             )
+
+            # Update paper status
+            paper.status = decision
+            paper.save()
+
             Alert.objects.create(
                 user=paper.uploaded_by,
                 paper=paper,
                 alert_type='review',
                 message=f'{request.user.username} left feedback on your paper "{paper.title}".',
             )
+
             messages.success(request, 'Your feedback has been submitted.')
 
     return redirect('paper_detail', paper_id=paper.id)
-
 
 # ── delete review ─────────────────────────────
 @login_required(login_url='login')

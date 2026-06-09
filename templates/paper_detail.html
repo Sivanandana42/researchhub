@@ -163,19 +163,47 @@
         <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
       </div>
     </div>
-    {% if review.reviewer == user %}
-    <a href="{% url 'delete_review' review.id %}"
-       onclick="return confirm('Delete your review?')"
-       style="font-size:.72rem;color:#ff6b6b;text-decoration:none;font-weight:600;
-              padding:4px 10px;border:1px solid rgba(229,62,62,.3);border-radius:6px;
-              transition:all .2s;"
-       onmouseover="this.style.background='rgba(229,62,62,.1)'"
-       onmouseout="this.style.background='transparent'">
-      &#128465; Delete
-    </a>
-    {% else %}
-    <span style="font-size:.72rem;color:var(--dim);">Feedback</span>
-    {% endif %}
+   <div class="review-header">
+    <div class="reviewer-info">
+        <div class="reviewer-avatar">
+            {{ review.reviewer.username|first|upper }}
+        </div>
+        <div>
+            <div class="reviewer-name">
+                {{ review.reviewer.username }}
+            </div>
+            <div class="review-date">
+                {{ review.created_at|date:"M d, Y" }}
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+
+        <span class="tag tag-{{ review.decision }}">
+            {% if review.decision == 'accepted' %}
+                ✓ Accepted
+            {% elif review.decision == 'rejected' %}
+                ✗ Rejected
+            {% elif review.decision == 'revise' %}
+                ✎ Needs Revision
+            {% else %}
+                Pending
+            {% endif %}
+        </span>
+
+        {% if review.reviewer == user %}
+        <a href="{% url 'delete_review' review.id %}"
+           onclick="return confirm('Delete your review?')"
+           style="font-size:.72rem;color:#ff6b6b;text-decoration:none;font-weight:600;
+                  padding:4px 10px;border:1px solid rgba(229,62,62,.3);
+                  border-radius:6px;">
+            &#128465; Delete
+        </a>
+        {% endif %}
+
+    </div>
+</div>
   </div>
   <p class="review-comment">{{ review.comment }}</p>
 </div>
@@ -186,13 +214,21 @@
     </div>
 
     <!-- SUBMIT REVIEW — any logged-in user except the uploader -->
-{% if paper.uploaded_by != user %}
+{% if paper.uploaded_by != user and user.profile.role == 'reviewer' %}
 <div class="section">
   <div class="section-title">Add Your Review</div>
   <div class="review-form">
     <h3>Share your feedback</h3>
     <form method="POST" action="{% url 'submit_review' paper.id %}">
       {% csrf_token %}
+      <div class="form-group">
+  <label>Decision</label>
+  <select name="decision" required>
+    <option value="accepted">Accept</option>
+    <option value="rejected">Reject</option>
+    <option value="revise">Needs Revision</option>
+  </select>
+</div>
       <div class="form-group">
         <label>Your feedback</label>
         <textarea name="comment"
@@ -203,9 +239,11 @@
     </form>
   </div>
 </div>
-{% else %}
+{% if paper.uploaded_by == user %}
 <div class="section">
-  <p style="color:var(--dim);font-size:.84rem;">You cannot review your own paper.</p>
+  <p style="color:var(--dim);font-size:.84rem;">
+    You cannot review your own paper.
+  </p>
 </div>
 {% endif %}
 
@@ -326,14 +364,17 @@
   var msgO = document.getElementById('score-msg-ok');
 
   if(bar){
-    var score = parseFloat(bar.style.width);
+    var score = parseFloat(bar.dataset.score);
+
+    bar.style.width = score + "%";
+
     if(score > 50){
-      bar.style.background  = '#ff6b6b';
-      if(num)  num.style.color  = '#ff6b6b';
+      bar.style.background = '#ff6b6b';
+      if(num) num.style.color = '#ff6b6b';
       if(msgB) msgB.style.display = 'block';
     } else {
-      bar.style.background  = '#68d391';
-      if(num)  num.style.color  = '#68d391';
+      bar.style.background = '#68d391';
+      if(num) num.style.color = '#68d391';
       if(msgO) msgO.style.display = 'block';
     }
   }
