@@ -141,9 +141,9 @@
       {% endif %}
     </div>
 
-    {% if paper.uploaded_by != user %}
-    <div class="section">
-      <div class="section-title">Add Your Review</div>
+    {% if paper.uploaded_by != user and user.profile.role == 'reviewer' or user.profile.role == 'admin' %}
+   <div class="section">
+    <div class="section-title">Add Your Review</div>
       <div class="review-form">
         <h3>Share your feedback</h3>
         <form method="POST" action="{% url 'submit_review' paper.id %}">

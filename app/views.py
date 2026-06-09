@@ -496,7 +496,45 @@ def export_report_pdf(request, paper_id):
 
 
 # ── upload ────────────────────────────────────
+# ── upload ────────────────────────────────────
 @login_required(login_url='login')
+def extract_text_from_file(file):
+    """Extract plain text from uploaded file for plagiarism comparison."""
+    import os
+    text = ''
+    name = file.name.lower()
+
+    try:
+        if name.endswith('.txt'):
+            text = file.read().decode('utf-8', errors='ignore')
+
+        elif name.endswith('.pdf'):
+            try:
+                import pypdf
+                file.seek(0)
+                reader = pypdf.PdfReader(file)
+                for page in reader.pages:
+                    text += page.extract_text() or ''
+            except Exception:
+                pass
+
+        elif name.endswith('.docx'):
+            try:
+                import docx
+                import io
+                file.seek(0)
+                doc = docx.Document(io.BytesIO(file.read()))
+                text = ' '.join([p.text for p in doc.paragraphs])
+            except Exception:
+                pass
+
+    except Exception:
+        pass
+
+    file.seek(0)
+    return text.strip()
+
+
 def upload_paper(request):
     if get_role(request.user) == 'admin':
         return redirect('admin_panel')
@@ -533,22 +571,40 @@ def upload_paper(request):
             status='pending',
         )
 
-        # ── real plagiarism comparison ────────
+        # ── REAL PLAGIARISM COMPARISON ────────────────
+        file_text = extract_text_from_file(file)
+
         new_text = re.sub(
-            r'\s+', ' ',
-            f"{title} {abstract} {keywords}".lower().strip()
+            r'\s+',
+            ' ',
+            f"{title} {abstract} {keywords} {file_text}".lower().strip()
         )
-        max_score       = 0.0
+
+        max_score = 0.0
         existing_papers = ResearchPaper.objects.exclude(id=paper.id)
 
         for existing in existing_papers:
+            existing_file_text = ''
+
+            if existing.file:
+                try:
+                    existing.file.open('rb')
+                    existing_file_text = extract_text_from_file(existing.file)
+                    existing.file.close()
+                except Exception:
+                    pass
+
             existing_text = re.sub(
-                r'\s+', ' ',
-                f"{existing.title} {existing.abstract or ''} {existing.keywords or ''}".lower().strip()
+                r'\s+',
+                ' ',
+                f"{existing.title} {existing.abstract or ''} "
+                f"{existing.keywords or ''} {existing_file_text}".lower().strip()
             )
+
             if existing_text:
                 s = round(
-                    SequenceMatcher(None, new_text, existing_text).ratio() * 100, 1
+                    SequenceMatcher(None, new_text, existing_text).ratio() * 100,
+                    1
                 )
                 if s > max_score:
                     max_score = s
@@ -565,6 +621,7 @@ def upload_paper(request):
                 "Content appears largely original."
             )
         )
+
         kw = keywords or extract_keywords(abstract or title)
 
         PlagiarismReport.objects.create(
@@ -574,21 +631,21 @@ def upload_paper(request):
             keywords=kw,
         )
 
-        # auto-update paper status based on score
+        # ── FIXED INDENTATION HERE ──
         if score >= 80:
             paper.status = 'rejected'
         elif score >= 40:
             paper.status = 'revise'
         else:
             paper.status = 'accepted'
+
         paper.save()
 
         log_action(request.user, 'upload', f'Uploaded: {title}', request)
 
-        # store suggestions in session for paper detail page
         suggestions = generate_suggestions(score)
         if suggestions:
-            request.session['suggestions']         = suggestions
+            request.session['suggestions'] = suggestions
             request.session['suggestion_paper_id'] = paper.id
 
         if score >= 40:
@@ -598,20 +655,27 @@ def upload_paper(request):
                 level = "High"
             else:
                 level = "Moderate"
+
             Alert.objects.create(
                 user=request.user,
                 paper=paper,
                 alert_type='plagiarism',
                 message=f'{level} plagiarism detected in "{title}" — {score}% similarity. AI suggestions provided on the paper page.',
             )
-            messages.warning(request, f'Plagiarism score: {score}%. Check the paper page for AI suggestions to reduce it.')
+
+            messages.warning(
+                request,
+                f'Plagiarism score: {score}%. Check the paper page for AI suggestions.'
+            )
         else:
-            messages.success(request, f'Paper uploaded successfully. Plagiarism score: {score}% — content appears original.')
+            messages.success(
+                request,
+                f'Paper uploaded successfully. Plagiarism score: {score}%.'
+            )
 
         return redirect('paper_detail', paper_id=paper.id)
 
     return render(request, 'upload.html', {'categories': categories})
-
 
 # ── delete paper (user or admin) ──────────────
 @login_required(login_url='login')
@@ -659,6 +723,10 @@ def submit_review(request, paper_id):
 
     if paper.uploaded_by == request.user:
         messages.error(request, 'You cannot review your own paper.')
+        return redirect('paper_detail', paper_id=paper.id)
+
+    if get_role(request.user) not in ['reviewer', 'admin']:
+        messages.error(request, 'Only reviewers can submit reviews.')
         return redirect('paper_detail', paper_id=paper.id)
 
     if request.method == 'POST':
