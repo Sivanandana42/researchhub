@@ -28,5 +28,5 @@ urlpatterns = [
     path('paper/<int:paper_id>/delete/', views.delete_paper, name='delete_paper'),
     path('paper/<int:paper_id>/export-pdf/', views.export_report_pdf, name='export_pdf'),
     path('review/<int:review_id>/delete/', views.delete_review, name='delete_review'),
-    path('setup-admin/', views.create_admin, name='create_admin'),
+   
 ]
