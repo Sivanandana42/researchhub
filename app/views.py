@@ -262,8 +262,8 @@ def paper_detail(request, paper_id):
         request.session.pop('suggestion_paper_id', None)
 
     # also generate live if score >= 40 and no session suggestions
-   if not suggestions and report and report.score >= 40:
-    suggestions = generate_suggestions(report.score, paper)
+    if not suggestions and report and report.score >= 40:
+     suggestions = generate_suggestions(report.score, paper)
 
     return render(request, 'paper_detail.html', {
         'paper':       paper,
