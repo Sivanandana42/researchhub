@@ -56,36 +56,63 @@ def extract_keywords(text):
     return ', '.join(top)
 
 
-def generate_suggestions(score):
-    """Return AI suggestions to reduce plagiarism based on score range."""
+def generate_suggestions(score, paper=None):
+    """Generate paper-specific AI suggestions based on score and paper content."""
     if score < 40:
         return []
+
+    # extract paper-specific info
+    paper_keywords = []
+    paper_topic    = ''
+    paper_title    = ''
+
+    if paper:
+        paper_title = paper.title or ''
+        if paper.keywords:
+            paper_keywords = [k.strip() for k in paper.keywords.split(',') if k.strip()]
+        if paper.abstract:
+            # extract top 3 meaningful words from abstract
+            stopwords = {'the','a','an','is','in','of','to','and','for','with',
+                        'that','this','are','was','on','at','by','be','has',
+                        'have','had','their','from','which','were','been'}
+            words = re.findall(r'\b[a-zA-Z]{4,}\b', paper.abstract.lower())
+            freq = {}
+            for w in words:
+                if w not in stopwords:
+                    freq[w] = freq.get(w, 0) + 1
+            top = sorted(freq, key=freq.get, reverse=True)[:3]
+            paper_topic = ', '.join(top)
+
+    # use first keyword as topic reference
+    topic_ref = paper_keywords[0] if paper_keywords else paper_topic or 'your research topic'
+    title_ref = paper_title[:60] if paper_title else 'this paper'
+
     if score < 60:
         return [
-            "Paraphrase similar sections in your own words while preserving the original meaning.",
-            "Add more of your own analysis, observations, and conclusions to increase original content.",
-            "Cite all original sources properly using standard citation formats such as APA, MLA, or IEEE.",
-            "Expand your methodology section with your own unique approach and findings.",
-            "Replace direct statements with your own interpretation of the referenced material.",
+            f'Rewrite the sections in "{title_ref}" that discuss {topic_ref} using your own original language and perspective.',
+            f'Add your own experimental results or observations related to {topic_ref} to increase the original content percentage.',
+            f'Cite all referenced sources properly — any borrowed ideas about {topic_ref} must include author name, year, and publication.',
+            f'Expand your methodology section by explaining specifically how you applied {topic_ref} in your own approach.',
+            f'Replace any directly copied definitions of {topic_ref} with your own understanding written in your own words.',
         ]
     elif score < 80:
         return [
-            "Rewrite the introduction and conclusion sections entirely in your own words.",
-            "Use quotation marks and proper citations for any text taken directly from other sources.",
-            "Significantly rephrase all paragraphs that overlap with existing papers.",
-            "Add new original sections such as your own experimental results or case studies.",
-            "Replace background content with fresh research from different sources and cite them properly.",
-            "Break down complex borrowed ideas and rebuild the explanation using your own language.",
+            f'The introduction and literature review sections about {topic_ref} need to be completely rewritten in your own words.',
+            f'All paragraphs that describe {topic_ref} concepts copied from other papers must be significantly rephrased.',
+            f'Add a new original section specifically covering your own findings and conclusions about {topic_ref}.',
+            f'Use quotation marks for any sentence taken directly from a source and add proper IEEE or APA citation.',
+            f'Replace background content about {topic_ref} with summaries from at least 3 different new reference sources.',
+            f'Restructure the paper "{title_ref}" so that your original contribution forms the majority of the content.',
         ]
     else:
         return [
-            "Major rewriting is required — most sections appear to overlap with existing papers.",
-            "Completely rewrite the abstract, introduction, and literature review sections from scratch.",
-            "Remove all directly copied content and replace with original thought and analysis.",
-            "Consult additional and diverse reference sources and write summaries in your own words.",
-            "Add substantial original contributions such as new experiments, datasets, or case studies.",
-            "Use a citation manager to properly attribute all referenced ideas and statements.",
-            "Consider restructuring the entire paper with a fresh perspective and original arguments.",
+            f'"{title_ref}" requires major rewriting — most content about {topic_ref} appears to match existing papers.',
+            f'Completely rewrite the abstract, introduction, and all sections discussing {topic_ref} from scratch.',
+            f'Remove all directly copied content about {topic_ref} and replace with original research and analysis.',
+            f'Consult at least 5 new and diverse reference sources on {topic_ref} and write summaries in your own words.',
+            f'Add substantial original contributions specific to {topic_ref} such as new experiments, data, or case studies.',
+            f'Restructure the entire paper "{title_ref}" with a completely fresh perspective and original arguments.',
+            f'Consider running your revised paper through the system again after rewriting to verify the new similarity score.',
         ]
 
 
@@ -235,8 +262,8 @@ def paper_detail(request, paper_id):
         request.session.pop('suggestion_paper_id', None)
 
     # also generate live if score >= 40 and no session suggestions
-    if not suggestions and report and report.score >= 40:
-        suggestions = generate_suggestions(report.score)
+   if not suggestions and report and report.score >= 40:
+    suggestions = generate_suggestions(report.score, paper)
 
     return render(request, 'paper_detail.html', {
         'paper':       paper,
@@ -279,7 +306,7 @@ def export_report_pdf(request, paper_id):
         </div>'''
 
     # build suggestions HTML for PDF
-    suggestions      = generate_suggestions(report.score)
+    suggestions = generate_suggestions(report.score, paper)
     suggestions_html = ''
     if suggestions:
         items = ''.join(
@@ -642,7 +669,7 @@ def upload_paper(request):
 
         log_action(request.user, 'upload', f'Uploaded: {title}', request)
 
-        suggestions = generate_suggestions(score)
+        suggestions = generate_suggestions(score, paper)
         if suggestions:
             request.session['suggestions'] = suggestions
             request.session['suggestion_paper_id'] = paper.id
